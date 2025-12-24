@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FUNZIES</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:0;}
+body{display:flex;flex-direction:column;height:100vh;background:#f4f4f4;overflow:hidden;position:relative;transition:background 0.5s,color 0.5s;}
+body.dark{background:#121212;color:white;}
+
+/* Welcome */
+#welcome-screen{position:fixed;inset:0;background:white;color:#ff9800;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;}
+#welcome-screen h1{font-family:'Patrick Hand', cursive;font-size:96px;font-weight:900;margin-bottom:40px;}
+#welcome-screen button{font-size:28px;padding:18px 60px;border-radius:50px;border:3px solid #ff9800;background:white;color:#ff9800;font-weight:800;cursor:pointer;transition:all 0.3s ease;}
+#welcome-screen button:hover{background:#ff9800;color:white;transform:translateY(-4px);box-shadow:0 12px 25px rgba(255,152,0,0.4);}
+
+/* Main Screen */
+#main-screen{display:none;flex:1;flex-direction:column;position:relative;}
+.main-title{font-family:'Patrick Hand', cursive;text-align:center;font-size:6vw;font-weight:900;color:#ff9800;margin:30px 0 10px;}
+#top-buttons{position:absolute;top:20px;right:20px;display:flex;gap:10px;}
+#tile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;padding:20px;flex:1;align-items:start;justify-items:center;overflow:hidden;position:relative;}
+.tile{width:100%;aspect-ratio:11/9;background:white;border-radius:16px;box-shadow:0 8px 20px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:bold;text-align:center;cursor:pointer;transition: transform 0.3s, box-shadow 0.3s, background 0.3s;position:relative;}
+.tile:hover{transform:translateY(-8px) scale(1.05);box-shadow:0 16px 30px rgba(0,0,0,0.2);background:#fff3e0;}
+.tile {background: linear-gradient(135deg, #ff9800, #ff5722); color: white; font-weight: 900;}
+.tile:hover{background: linear-gradient(135deg, #ff5722, #ff9800);}
+
+/* Gear button */
+#code-btn{background: linear-gradient(135deg, #ff9800, #ff5722);color:white;font-weight:900;font-size:28px;padding:14px 28px;border:none;border-radius:16px;cursor:pointer;box-shadow:0 8px 20px rgba(255,152,0,0.5);transition:all 0.3s ease;}
+#code-btn:hover{transform:translateY(-3px) scale(1.05);box-shadow:0 14px 28px rgba(255,152,0,0.6);background: linear-gradient(135deg, #ff5722,#ff9800);}
+
+/* Modals */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;}
+.modal-content{width:90%;max-width:800px;border-radius:16px;background:#fff;display:flex;flex-direction:column;align-items:center;padding:30px;position:relative;text-align:center;transition:all 0.3s ease;}
+.modal-content h2{margin:15px 0;font-size:2rem;color:#ff9800;}
+body.dark .modal-content{background:#1e1e1e;color:white;}
+.close-btn{position:absolute;top:20px;right:20px;background:#ff9800;color:white;border:none;padding:16px 24px;border-radius:50px;font-size:24px;cursor:pointer;}
+.close-btn:hover{background:#fb8c00;}
+
+/* Upgrades */
+#billion-options,#upgrade-container{width:100%;max-height:400px;overflow-y:auto;display:flex;flex-direction:column;align-items:center;}
+.option-btn,.upgrade{width:90%;padding:16px 20px;font-size:1.2rem;border-radius:16px;border:none;margin:6px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all 0.3s;}
+.option-btn{background:#ff9800;color:white;}
+.option-btn:hover{background:#fb8c00;}
+.upgrade{background:#ccc;color:#555;cursor:not-allowed;position:relative;}
+.upgrade.active{background:#ff9800;color:white;cursor:pointer;}
+.upgrade.active:hover{background:#fb8c00;}
+.upgrade-icon{width:40px;height:40px;margin-right:12px;}
+
+/* Click Me Button Modern */
+#click-btn{width:200px;height:80px;font-size:2rem;background:linear-gradient(135deg,#ff9800,#ff5722);color:white;border:none;border-radius:24px;cursor:pointer;box-shadow:0 6px 20px rgba(255,152,0,0.5);transition:all 0.3s;}
+#click-btn:hover{transform:scale(1.05);box-shadow:0 12px 30px rgba(255,152,0,0.7);background:linear-gradient(135deg,#ff5722,#ff9800);}
+
+/* Emoji Chaos Modern */
+#emoji-chaos-buttons{display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap;justify-content:center;}
+.chaos-btn{padding:16px 32px;font-size:1.5rem;border-radius:20px;border:none;background:linear-gradient(135deg,#ff9800,#ff5722);color:white;cursor:pointer;transition:all 0.3s;font-weight:900;}
+.chaos-btn:hover{transform:scale(1.05);background:linear-gradient(135deg,#ff5722,#ff9800);}
+.chaos-emoji{font-size:3rem;padding:12px;cursor:pointer;border-radius:16px;transition:transform 0.3s;}
+.chaos-emoji:hover{transform:scale(1.5);}
+
+/* Rainbow Word */
+#rainbow-word{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);font-size:100px;font-weight:900;text-shadow:2px 2px #000;z-index:100003;animation:shake 0.5s infinite;display:none;}
+@keyframes shake{0%{transform:translate(-50%,-50%) rotate(0deg);}25%{transform:translate(-50%,-50%) rotate(5deg);}50%{transform:translate(-50%,-50%) rotate(-5deg);}75%{transform:translate(-50%,-50%) rotate(5deg);}100%{transform:translate(-50%,-50%) rotate(0deg);}}
+
+/* Floating Circles */
+.floating-circle{position:fixed;border-radius:50%;pointer-events:none;z-index:99999;animation:floatCircle 10s linear forwards;}
+@keyframes floatCircle{0%{opacity:0.8;transform:scale(0) translateY(0);}100%{opacity:0;transform:scale(3) translateY(-120vh);}}
+
+/* Settings Modal */
+#settings-modal .modal-content{max-width:400px;}
+.setting-btn{padding:12px 24px;font-size:1.2rem;border-radius:12px;border:none;background:linear-gradient(135deg,#ff9800,#ff5722);color:white;margin:10px 0;cursor:pointer;font-weight:900;transition:all 0.3s;}
+.setting-btn:hover{transform:scale(1.05);background:linear-gradient(135deg,#ff5722,#ff9800);}
+
+/* Support Us */
+#support-btn{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#ff9800,#ff5722);color:white;padding:16px 32px;font-size:1.5rem;border:none;border-radius:50px;cursor:pointer;z-index:1000;font-weight:900;transition:all 0.3s;}
+#support-btn:hover{transform:translateX(-50%) scale(1.05);background:linear-gradient(135deg,#ff5722,#ff9800);}
+
+#rng-input { text-align: center; }
+#reaction-btn { width: 200px; height: 80px; font-size: 1.5rem; transition: all 0.2s; }
+
+/* Force Panda Simulator to second row */
+#panda-sim-tile {
+  grid-row: 2; /* forces it to the second row */
+}
+
+</style>
+</head>
+<body>
+
+<!-- Welcome -->
+<div id="welcome-screen">
+  <h1>FUNZIES</h1>
+  <button id="enter-btn">ENTER</button>
+</div>
+
+<!-- Main Screen -->
+<div id="main-screen">
+  <div class="main-title">FUNZIES</div>
+  <div id="top-buttons">
+    <button id="code-btn">⚙️</button>
+  </div>
+  <div id="tile-grid">
+    <div class="tile" id="billion-tile">Spend a Billion</div>
+    <div class="tile" id="clicker-tile">Clicker Game</div>
+    <div class="tile" id="emoji-chaos-tile">Emoji Chaos</div>
+    <div class="tile" id="rng-tile">RNG Game</div>
+    <div class="tile" id="reaction-tile">Reaction Time Game</div>
+    <!-- NEW PANDA SIMULATOR TILE -->
+    <div class="tile" id="panda-sim-tile">Panda Simulator</div>
+  </div>
+  <button id="support-btn">Support Us</button>
+</div>
+
+<!-- Modals -->
+
+<!-- RNG Game Modal -->
+<div id="rng-modal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" id="close-rng">✖</button>
+    <h2>RNG Game</h2>
+    <p>Guess a number between 1 and 10</p>
+    <input type="number" id="rng-input" min="1" max="10" style="padding:12px;font-size:1.2rem;border-radius:12px;border:1px solid #ccc;width:50%;">
+    <button id="rng-submit" class="setting-btn" style="margin-top:10px;">Submit Guess</button>
+    <div id="rng-result" style="margin-top:15px;font-weight:bold;font-size:1.2rem;"></div>
+  </div>
+</div>
+
+<!-- Reaction Time Modal -->
+<div id="reaction-modal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" id="close-reaction">✖</button>
+    <h2>Reaction Time Game</h2>
+    <p>Click the button as fast as you can when it turns green!</p>
+    <button id="reaction-btn" class="setting-btn" style="background:#ff9800;">Wait...</button>
+    <div id="reaction-time" style="margin-top:15px;font-weight:bold;font-size:1.2rem;"></div>
+  </div>
+</div>
+
+<!-- Panda Simulator Modal -->
+<div id="panda-sim-modal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" id="close-panda-sim">✖</button>
+    <h2>Panda Simulator</h2>
+    <button class="option-btn" id="pandasim3-btn">PandaSIM3</button>
+    <button class="option-btn" id="pandasim4-btn">PandaSIM4</button>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" id="close-settings">✖</button>
+    <h2>Settings</h2>
+    <button class="setting-btn" id="sound-toggle">Sound: ON</button>
+    <button class="setting-btn" id="theme-toggle">Theme: Light</button>
+    <input type="text" id="settings-code-input" placeholder="Type code here" style="margin-top:20px;padding:12px;font-size:1.2rem;border-radius:12px;border:1px solid #ccc;width:80%;">
+    <button id="settings-submit-code" class="setting-btn" style="margin-top:10px;">Submit Code</button>
+    <div id="settings-code-message" style="margin-top:10px;color:red;"></div>
+  </div>
+</div>
+
+<!-- Spend a Billion Modal -->
+<div id="billion-modal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" id="close-billion">✖</button>
+    <h2>Spend $1,000,000,000</h2>
+    <div id="money-amount">$1,000,000,000 remaining</div>
+    <div id="billion-options"></div>
+  </div>
+</div>
+
+<!-- Clicker Modal -->
+<div id="clicker-modal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" id="close-clicker">✖</button>
+    <h2>Points: <span id="points">0</span></h2>
+    <button id="click-btn">Click Me!</button>
+    <div id="upgrade-container"></div>
+  </div>
+</div>
+
+<!-- Emoji Chaos Modal -->
+<div id="emoji-chaos-modal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" id="close-emoji-chaos">✖</button>
+    <h2>Emoji Chaos</h2>
+    <div id="emoji-chaos-buttons">
+      <button class="chaos-btn" id="fall-btn">Fall</button>
+      <button class="chaos-btn" id="spiral-btn">Spiral</button>
+      <button class="chaos-btn" id="flash-btn">Flash</button>
+    </div>
+    <div id="emoji-menu"></div>
+  </div>
+</div>
+
+<div id="rainbow-word"></div>
+
+<script>
+// ---------- Welcome ----------
+const welcomeScreen = document.getElementById("welcome-screen");
+const enterBtn = document.getElementById("enter-btn");
+const mainScreen = document.getElementById("main-screen");
+enterBtn.onclick = () => { welcomeScreen.style.display = "none"; mainScreen.style.display = "flex"; }
+
+// ---------- Spend a Billion ----------
+const billionTile = document.getElementById("billion-tile");
+const billionModal = document.getElementById("billion-modal");
+const closeBillion = document.getElementById("close-billion");
+const moneyAmount = document.getElementById("money-amount");
+const billionOptions = document.getElementById("billion-options");
+let money = 1000000000;
+
+const billionItems=[
+{name:"Burger", cost:5, owned:0},{name:"Coffee", cost:100, owned:0},{name:"Vacation", cost:5000, owned:0},
+{name:"iPhone", cost:200000, owned:0},{name:"Supercar", cost:1000000, owned:0},{name:"Football Team", cost:50000000, owned:0},
+{name:"Yacht", cost:200000000, owned:0},{name:"Mansion", cost:150000000, owned:0},{name:"Luxury Watch", cost:10000000, owned:0},
+{name:"Private Jet", cost:5000000, owned:0},{name:"Designer Outfit", cost:750000, owned:0},{name:"Art Collection", cost:20000000, owned:0},
+{name:"Island", cost:300000000, owned:0},{name:"Rare Sneakers", cost:400000, owned:0},{name:"Luxury Car Collection", cost:2500000, owned:0},
+{name:"Concert Tour", cost:10000000, owned:0},{name:"Casino Buyout", cost:50000000, owned:0},{name:"Private Club Membership", cost:2000000, owned:0},
+{name:"Space Trip", cost:100000000, owned:0},{name:"Charity Donation", cost:1000, owned:0}
+];
+
+function renderBillionOptions(){
+  billionOptions.innerHTML='';
+  billionItems.forEach(item=>{
+    const btn=document.createElement("button");
+    btn.className="option-btn";
+    btn.innerHTML=`<span>${item.name} $${item.cost.toLocaleString()}</span><span>Owned: ${item.owned}</span>`;
+    btn.onclick=()=>{if(money>=item.cost){ money-=item.cost; item.owned++; moneyAmount.textContent=`$${money.toLocaleString()} remaining`; renderBillionOptions();} else alert("Not enough money!");}
+    billionOptions.appendChild(btn);
+  });
+}
+billionTile.onclick = () => { billionModal.style.display="flex"; renderBillionOptions(); }
+closeBillion.onclick = () => { billionModal.style.display="none"; }
+
+// ---------- Clicker ----------
+let points=0, pointsPerClick=1, cps=0;
+const clickerTile=document.getElementById("clicker-tile");
+const clickerModal=document.getElementById("clicker-modal");
+const clickBtn=document.getElementById("click-btn");
+const upgradeContainer=document.getElementById("upgrade-container");
+const closeClicker=document.getElementById("close-clicker");
+const pointsDisplay=document.getElementById("points");
+
+clickerTile.onclick=()=>{clickerModal.style.display="flex";}
+closeClicker.onclick=()=>{clickerModal.style.display="none";}
+clickBtn.onclick=()=>{points+=pointsPerClick; pointsDisplay.textContent=points; renderUpgrades(); }
+
+// ---------- Clicker Upgrades ----------
+let upgrades=[
+{name:"Soda Factory", type:"cps", value:1, price:10, owned:0,icon:"🥤"},
+{name:"Capybara Oasis", type:"cpc", value:1, price:20, owned:0,icon:"🦫"},
+{name:"Panda Sanctuary", type:"cps", value:2, price:50, owned:0,icon:"🐼"},
+{name:"Shoe Store", type:"cpc", value:2, price:100, owned:0,icon:"👟"},
+{name:"Robot Factory", type:"cps", value:3, price:200, owned:0,icon:"🤖"},
+{name:"Chocolate Planet", type:"cpc", value:3, price:400, owned:0,icon:"🍫"},
+{name:"Pizza Planet", type:"cps", value:4, price:800, owned:0,icon:"🍕"},
+{name:"Ice Cream Shop", type:"cpc", value:4, price:1000, owned:0,icon:"🍦"},
+{name:"Arcade Center", type:"cps", value:5, price:2000, owned:0,icon:"🕹️"},
+{name:"Cat Café", type:"cpc", value:5, price:4000, owned:0,icon:"🐱"},
+{name:"Diamond Mine", type:"cps", value:10, price:10000, owned:0,icon:"💎"},
+{name:"Yacht Ocean", type:"cpc", value:10, price:20000, owned:0,icon:"🛥️"}
+];
+
+function renderUpgrades(){
+  upgradeContainer.innerHTML="";
+  upgrades.forEach(u=>{
+    const btn=document.createElement("button");
+    btn.className="upgrade "+(points>=u.price?"active":"");
+    btn.innerHTML=`<span class="upgrade-icon">${u.icon}</span>${u.name} - Price: ${u.price} - Owned: ${u.owned}`;
+    btn.onclick=()=>{if(points>=u.price){points-=u.price; pointsDisplay.textContent=points; u.owned++; if(u.type=="cpc") pointsPerClick+=u.value; if(u.type=="cps") cps+=u.value; renderUpgrades();}}
+    upgradeContainer.appendChild(btn);
+  });
+}
+setInterval(()=>{points+=cps; pointsDisplay.textContent=points; renderUpgrades();},1000);
+renderUpgrades();
+
+// ---------- Gear Settings ----------
+const codeBtn=document.getElementById("code-btn");
+const settingsModal=document.getElementById("settings-modal");
+const closeSettings=document.getElementById("close-settings");
+const soundToggle=document.getElementById("sound-toggle");
+const themeToggle=document.getElementById("theme-toggle");
+const settingsCodeInput=document.getElementById("settings-code-input");
+const settingsSubmitCode=document.getElementById("settings-submit-code");
+
+let soundOn=true;
+let darkMode=false;
+
+codeBtn.onclick=()=>{settingsModal.style.display="flex";}
+closeSettings.onclick=()=>{settingsModal.style.display="none";}
+soundToggle.onclick=()=>{
+  soundOn=!soundOn;
+  soundToggle.textContent="Sound: "+(soundOn?"ON":"OFF");
+}
+themeToggle.onclick=()=>{
+  darkMode=!darkMode;
+  document.body.classList.toggle("dark",darkMode);
+  themeToggle.textContent="Theme: "+(darkMode?"Dark":"Light");
+}
+
+// ---------- Code inside settings ----------
+settingsSubmitCode.onclick=()=>{
+  const code=settingsCodeInput.value.trim();
+  if(code!==""){
+    if(code.toLowerCase()==="panda") triggerCircles("white","black");
+    if(code.toLowerCase()==="wolf") triggerCircles("grey","black");
+    if(code.toLowerCase()==="lion") triggerCircles("orange","black");
+    if(code.toLowerCase()==="elephant") triggerCircles("grey","white");
+    const match=code.match(/^(\w{1,7})12$/i); if(match) triggerRainbow(match[1]);
+  }
+  settingsCodeInput.value="";
+  settingsModal.style.display="none";
+}
+
+// ---------- Emoji Chaos ----------
+const emojiChaosTile=document.getElementById("emoji-chaos-tile");
+const emojiChaosModal=document.getElementById("emoji-chaos-modal");
+const closeEmojiChaos=document.getElementById("close-emoji-chaos");
+const fallBtn=document.getElementById("fall-btn");
+const spiralBtn=document.getElementById("spiral-btn");
+const flashBtn=document.getElementById("flash-btn");
+const emojiMenu=document.getElementById("emoji-menu");
+const chaosEmojis=["😀","🎉","💰","🚀","🍕","🏰","📚","🥳","🦄","🐼"];
+
+emojiChaosTile.onclick=()=>{emojiChaosModal.style.display="flex";}
+closeEmojiChaos.onclick=()=>{emojiChaosModal.style.display="none"; emojiMenu.innerHTML="";}
+
+function createEmojiButton(e){
+  const btn=document.createElement("span");
+  btn.className="chaos-emoji"; btn.textContent=e;
+  btn.onclick=()=>{ 
+    for(let i=0;i<10;i++){
+      const em=document.createElement("div"); em.textContent=e;
+      em.style.position="absolute";
+      em.style.left=Math.random()*90+"%";
+      em.style.top="0px";
+      em.style.fontSize=(20+Math.random()*50)+"px";
+      em.style.pointerEvents="none";
+      emojiChaosModal.appendChild(em);
+      let pos=0;
+      const interval=setInterval(()=>{pos+=5; em.style.top=pos+"px";},50);
+      setTimeout(()=>{clearInterval(interval); em.remove();},5000);
+    }
+  }
+  emojiMenu.appendChild(btn);
+}
+
+fallBtn.onclick=()=>{emojiMenu.innerHTML=""; chaosEmojis.forEach(createEmojiButton);}
+spiralBtn.onclick=()=>{emojiMenu.innerHTML=""; chaosEmojis.forEach(e=>{const btn=document.createElement("span"); btn.className="chaos-emoji"; btn.textContent=e; btn.onclick=()=>{const em=document.createElement("div"); em.textContent=e; em.style.position="absolute"; em.style.left="50%"; em.style.top="50%"; em.style.transform="translate(-50%,-50%) scale(0) rotate(0deg)"; em.style.fontSize="50px"; em.style.pointerEvents="none"; emojiChaosModal.appendChild(em); let t=0; const duration=10000; const interval=setInterval(()=>{t+=50; const scale=0.5+t/1000; const rotate=t*0.1; em.style.transform=`translate(-50%,-50%) scale(${scale}) rotate(${rotate}deg)`; if(t>=duration){clearInterval(interval); em.remove();}},50);}; emojiMenu.appendChild(btn);});}
+flashBtn.onclick=()=>{emojiMenu.innerHTML=""; chaosEmojis.forEach(e=>{const btn=document.createElement("span"); btn.className="chaos-emoji"; btn.textContent=e; btn.onclick=()=>{const ems=[]; for(let i=0;i<5;i++){const em=document.createElement("div"); em.textContent=e; em.style.position="absolute"; em.style.left=Math.random()*90+"%"; em.style.top=Math.random()*50+"%"; em.style.fontSize=(20+Math.random()*50)+"px"; em.style.pointerEvents="none"; emojiChaosModal.appendChild(em); ems.push(em);} let t=0; const interval=setInterval(()=>{t+=200; ems.forEach(em=>{em.style.visibility=em.style.visibility==="hidden"?"visible":"hidden";}); if(t>=5000){clearInterval(interval); ems.forEach(em=>em.remove());}},200);}; emojiMenu.appendChild(btn);});}
+
+// ---------- Rainbow & Floating Circles ----------
+const rainbowWord=document.getElementById("rainbow-word");
+function triggerRainbow(word){rainbowWord.textContent=word; rainbowWord.style.display="block"; setTimeout(()=>{rainbowWord.style.display="none";},5000);}
+function triggerCircles(color1,color2){for(let i=0;i<50;i++){const c=document.createElement("div"); c.className="floating-circle"; const size=Math.random()*50+20; c.style.width=c.style.height=size+"px"; c.style.left=Math.random()*100+"%"; c.style.top=Math.random()*100+"%"; c.style.background=Math.random()>0.5?color1:color2; document.body.appendChild(c); setTimeout(()=>c.remove(),10000);} }
+
+// ---------- RNG Game ----------
+const rngTile = document.getElementById("rng-tile");
+const rngModal = document.getElementById("rng-modal");
+const closeRng = document.getElementById("close-rng");
+const rngInput = document.getElementById("rng-input");
+const rngSubmit = document.getElementById("rng-submit");
+const rngResult = document.getElementById("rng-result");
+
+rngTile.onclick = () => { rngModal.style.display = "flex"; rngResult.textContent=""; rngInput.value=""; }
+closeRng.onclick = () => { rngModal.style.display = "none"; }
+
+rngSubmit.onclick = () => {
+  const guess = parseInt(rngInput.value);
+  if(!guess || guess<1 || guess>10) { rngResult.textContent="Enter a number between 1 and 10!"; return; }
+  const winning = Math.floor(Math.random()*10)+1;
+  if(guess===winning){ rngResult.textContent=`🎉 You guessed ${guess} and won!`; }
+  else { rngResult.textContent=`❌ You guessed ${guess}. Winning number was ${winning}. Try again!`; }
+}
+
+// ---------- Reaction Time Game ----------
+const reactionTile = document.getElementById("reaction-tile");
+const reactionModal = document.getElementById("reaction-modal");
+const closeReaction = document.getElementById("close-reaction");
+const reactionBtn = document.getElementById("reaction-btn");
+const reactionTimeDisplay = document.getElementById("reaction-time");
+
+let reactionStart, reactionTimeout;
+
+reactionTile.onclick = () => {
+  reactionModal.style.display = "flex";
+  reactionBtn.style.background="#ff9800";
+  reactionBtn.textContent="Wait...";
+  reactionTimeDisplay.textContent="";
+  startReactionGame();
+}
+
+closeReaction.onclick = () => {
+  reactionModal.style.display = "none";
+  clearTimeout(reactionTimeout);
+}
+
+function startReactionGame(){
+  const delay = 1000 + Math.random()*3000; // 1-4s
+  reactionTimeout = setTimeout(() => {
+    reactionBtn.style.background="#4caf50";
+    reactionBtn.textContent="CLICK!";
+    reactionStart = performance.now();
+  }, delay);
+}
+
+reactionBtn.onclick = () => {
+  if(reactionBtn.style.background!=="rgb(76, 175, 80)") { // clicked too early
+    reactionTimeDisplay.textContent="⏱ Too soon! Wait for green!";
+    clearTimeout(reactionTimeout);
+    startReactionGame();
+  } else {
+    const reactionTime = (performance.now() - reactionStart).toFixed(0);
+    reactionTimeDisplay.textContent=`🎯 Your reaction time: ${reactionTime} ms`;
+    reactionBtn.style.background="#ff9800";
+    reactionBtn.textContent="Wait...";
+    startReactionGame();
+  }
+}
+
+// ---------- Panda Simulator ----------
+const pandaSimTile = document.getElementById("panda-sim-tile");
+const pandaSimModal = document.getElementById("panda-sim-modal");
+const closePandaSim = document.getElementById("close-panda-sim");
+const pandasim3Btn = document.getElementById("pandasim3-btn");
+const pandasim4Btn = document.getElementById("pandasim4-btn");
+
+pandaSimTile.onclick = () => { pandaSimModal.style.display = "flex"; }
+closePandaSim.onclick = () => { pandaSimModal.style.display = "none"; }
+
+</script>
+</body>
+</html>
